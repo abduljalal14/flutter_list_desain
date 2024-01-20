@@ -48,11 +48,13 @@ class Network {
       headers: _setHeaders(),
     );
   }
-  updateData(apiURL) async {
+  
+  updateData(data, apiURL) async {
     var fullUrl = Uri.parse(_url + apiURL);
     await _getToken();
     return await http.put(
       fullUrl,
+      body: json.encode(data),
       headers: _setHeaders(),
     );
   }

@@ -26,12 +26,14 @@ class TaskViewModel extends ChangeNotifier {
   var data = {
     'name': name,
     'customer': customer,
-    'status': "ONPROCCES",
+    'status': "ONPROCESS",
     'urgent': 0,
   };
-
+  // unggah data ke server
   var res = await Network().postData(data, '/tasks');
+  // ambil json dari server
   var body = json.decode(res.body);
+  // mampping
   var taskData = (body as Map<String, dynamic>)['data'];
   Task newTask = Task.createTasks(taskData);
   _tasks.add(newTask);
@@ -52,40 +54,49 @@ class TaskViewModel extends ChangeNotifier {
     return tasks;
   }
 
-  static Future<void> deleteTaskById(String taskId) async {
-    var res = await Network().deleteData('/tasks/$taskId');
-    var body = json.decode(res.body);
+   Future<void> deleteTaskById(String taskId) async {
+    try {
+    tasks.removeWhere((task) => task.id == taskId);
+     notifyListeners();
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
 
-    if (body.statusCode == 200) {
-      // Task berhasil dihapus
-      print("Task with ID $taskId deleted successfully");
-    } else {
-      // Gagal menghapus task, tangani kesalahan jika diperlukan
-      print("Failed to delete task. Status code: ${body.statusCode}");
-      print("Response body: ${body.body}");
+    try {
+    await Network().deleteData('/tasks/$taskId');
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
     }
   }
 
   // Fungsi untuk mengirim perubahan task ke API
-  static Future<void> updateTask(Task updatedTask) async {
-    // ignore: unused_local_variable
-    Map<String, dynamic> requestData = {
-      "name": updatedTask.name,
-      "customer": updatedTask.customer,
-      "status": updatedTask.status,
-      "urgent": updatedTask.urgent,
-    };
+  Future<void> updateTask(Task updatedTask) async {
+  Map<String, dynamic> requestData = {
+    "name": updatedTask.name,
+    "customer": updatedTask.customer,
+    "status": updatedTask.status,
+    "urgent": updatedTask.urgent,
+  };
 
-    var res = await Network().updateData('/tasks/${updatedTask.id}');
-    var body = json.decode(res.body);
+  var res = await Network().updateData(requestData, '/tasks/${updatedTask.id}');
+  var statusCode = res.statusCode; // Mengambil status code dari response
+  if (statusCode == 200) {
+    print("Task dengan ID ${updatedTask.id} berhasil diperbarui");
 
-    if (body.statusCode == 200) {
-      // Task berhasil diupdate
-      print("Task with ID ${updatedTask.id} updated successfully");
-    } else {
-      // Gagal mengupdate task, tangani kesalahan jika diperlukan
-      print("Failed to update task. Status code: ${body.statusCode}");
-      print("Response body: ${body.body}");
+    // Cari indeks task dengan ID yang sesuai dalam _tasks
+    int index = _tasks.indexWhere((task) => task.id == updatedTask.id);
+
+    // Perbarui task pada indeks yang ditemukan
+    if (index != -1) {
+      _tasks[index] = updatedTask;
+      notifyListeners();
     }
+  } else {
+    print("Gagal memperbarui tugas. Kode status: $statusCode");
+    print("Response body: ${res.body}");
   }
+}
+
 }

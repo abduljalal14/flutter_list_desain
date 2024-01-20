@@ -38,7 +38,6 @@ Future<void> loadUserData() async {
         name: body['name'],
         email: body['email'],
       );
-
       notifyListeners();
     }
   } catch (error) {
