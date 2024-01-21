@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controller/user_view_model.dart';
 import '../network/api.dart';
 import 'home_page.dart';
 import 'login_page.dart';
@@ -192,6 +194,9 @@ class _RegisterState extends State<Register> {
     var res = await Network().auth(data, '/register');
     var body = json.decode(res.body);
     if (body['access_token'] != null) {
+    UserViewModel userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    await userViewModel.loadUserData();
+    
       SharedPreferences localStorage = await SharedPreferences.getInstance();
       localStorage.setString('access_token', body['access_token']);
       // ignore: use_build_context_synchronously

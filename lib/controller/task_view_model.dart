@@ -14,13 +14,22 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   TaskViewModel() {
-    getTasks("1").then((receivedTasks) {
-      receivedTasks.sort((a, b) {
-        return b.urgent.compareTo(a.urgent);
-      });
+    initializeTasks();
+  }
+
+  Future<void> initializeTasks() async {
+    _tasks = [];
+    notifyListeners();
+    print("reset tasks");
+    print("tasks setelah reset $_tasks");
+    print("inisalisasi tasks");
+    // Load tasks from the network
+    await _loadTasks("1").then((receivedTasks) {
       tasks = receivedTasks;
+      print("tasks setelah inisialisasi $_tasks");
     });
   }
+
 
   Future<Task?> addTask(String name, String customer) async {
   var data = {
@@ -41,7 +50,8 @@ class TaskViewModel extends ChangeNotifier {
 
   return newTask;
 }
-  static Future<List<Task>> getTasks(String page) async {
+   Future<List<Task>> _loadTasks(String page) async {
+    print("memuat tasks");
     var res = await Network().getData('/tasks?page=$page');
     var body = json.decode(res.body);
 
@@ -50,7 +60,7 @@ class TaskViewModel extends ChangeNotifier {
     for (var i = 0; i < listTask.length; i++) {
       tasks.add(Task.createTasks(listTask[i]));
     }
-
+    print("tasks setelah dimuat $_tasks");
     return tasks;
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_list_desain/controller/user_view_model.dart';
 import 'package:provider/provider.dart';
+import '../controller/task_view_model.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 
@@ -173,15 +174,18 @@ class _LoginState extends State<Login> {
     });
 
     var data = {
-      'email': email,
+      'email': email, 
       'password': password,
     };
-
+    print("test 1 passed");
     var userViewModel = Provider.of<UserViewModel>(context, listen: false);
     var res = await userViewModel.login(data);
-
+    print("test 2 passed");
     if (res['message'] == "Login success") {
       // Token sudah diambil oleh UserViewModel
+      // ignore: use_build_context_synchronously
+      Provider.of<TaskViewModel>(context, listen: false).initializeTasks();
+      print("test 3 passed");
       // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         context,
@@ -192,7 +196,7 @@ class _LoginState extends State<Login> {
     } else {
       _showMsg(res['message']);
     }
-
+    print("test 4 passed");
     setState(() {
       _isLoading = false;
     });

@@ -6,73 +6,65 @@ import '../model/task_model.dart';
 import 'component/task_list.dart';
 
 class HomePage extends StatelessWidget {
-  HomePage({Key? key});
+  const HomePage({Key? key});
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<UserViewModel>(context, listen: false).checkIfLoggedIn();
-
+    Provider.of<TaskViewModel>(context, listen: false).initializeTasks();
     final kTabPages = <Widget>[
-      Expanded(
-        child: Consumer<TaskViewModel>(
-          builder: (context, taskList, child) {
-            if (taskList.tasks.isEmpty) {
-              return const Center(
-                  child:
-                      Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
-            }
+      Consumer<TaskViewModel>(
+        builder: (context, taskList, child) {
+          if (taskList.tasks.isEmpty) {
+            return const Center(
+                child:
+                    Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
+          } else {
+            taskList.tasks.sort((a, b) {
+              return b.urgent.compareTo(a.urgent);
+            });
             return TaskListView(tasks: taskList.tasks);
-          },
-        ),
+          }
+        },
       ),
-      Expanded(
-        child: Consumer<TaskViewModel>(
-          builder: (context, taskList, child) {
-            List<Task> onProcessTasks = taskList.tasks
-                .where((task) => task.status == "ONPROCESS")
-                .toList();
-
-            if (onProcessTasks.isEmpty) {
-              return const Center(
-                  child:
-                      Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
-            }
-            return TaskListView(tasks: onProcessTasks);
-          },
-        ),
-      ),
-      Expanded(
-        child: Consumer<TaskViewModel>(
-          builder: (context, taskList, child) {
-            List<Task> pendingTasks = taskList.tasks
-                .where((task) => task.status == "PENDING")
-                .toList();
-
-            if (pendingTasks.isEmpty) {
-              return const Center(
-                  child:
-                      Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
-            }
-            return TaskListView(tasks: pendingTasks);
-          },
-        ),
-      ),
-      Expanded(
-        child: Consumer<TaskViewModel>(
-          builder: (context, taskList, child) {
-            List<Task> approvedTasks = taskList.tasks
-                .where((task) => task.status == "APPROVED")
-                .toList();
-
-            if (approvedTasks.isEmpty) {
-              return const Center(
-                  child:
-                      Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
-            }
-            return TaskListView(tasks: approvedTasks);
-          },
-        ),
-      ),
+      Consumer<TaskViewModel>(builder: (context, taskList, child) {
+        taskList.tasks.sort((a, b) {
+          return b.urgent.compareTo(a.urgent);
+        });
+        List<Task> onProcessTasks =
+            taskList.tasks.where((task) => task.status == "ONPROCESS").toList();
+        if (onProcessTasks.isEmpty) {
+          return const Center(
+              child: Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
+        } else {
+          return TaskListView(tasks: onProcessTasks);
+        }
+      }),
+      Consumer<TaskViewModel>(builder: (context, taskList, child) {
+        taskList.tasks.sort((a, b) {
+          return b.urgent.compareTo(a.urgent);
+        });
+        List<Task> onProcessTasks =
+            taskList.tasks.where((task) => task.status == "PENDING").toList();
+        if (onProcessTasks.isEmpty) {
+          return const Center(
+              child: Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
+        } else {
+          return TaskListView(tasks: onProcessTasks);
+        }
+      }),
+      Consumer<TaskViewModel>(builder: (context, taskList, child) {
+        taskList.tasks.sort((a, b) {
+          return b.urgent.compareTo(a.urgent);
+        });
+        List<Task> onProcessTasks =
+            taskList.tasks.where((task) => task.status == "APPROVED").toList();
+        if (onProcessTasks.isEmpty) {
+          return const Center(
+              child: Icon(Icons.check_circle, size: 64.0, color: Colors.blue));
+        } else {
+          return TaskListView(tasks: onProcessTasks);
+        }
+      }),
     ];
     final kTabs = <Tab>[
       const Tab(icon: Icon(Icons.assessment), text: 'All Task'),
@@ -152,10 +144,10 @@ class HomePage extends StatelessWidget {
 
                   if (newTask != null) {
                     // Berhasil menambahkan tugas, berikan umpan balik atau lakukan tindakan lain
-                    print("Task added successfully: ${newTask.name}");
+                    debugPrint("Task added successfully: ${newTask.name}");
                   } else {
                     // Gagal menambahkan tugas, berikan umpan balik atau lakukan tindakan lain
-                    print("Failed to add task.");
+                    debugPrint("Failed to add task.");
                   }
 
                   taskNameController.clear();

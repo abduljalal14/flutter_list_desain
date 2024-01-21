@@ -3,41 +3,104 @@ import 'package:provider/provider.dart';
 import '../../controller/task_view_model.dart';
 import '../../model/task_model.dart';
 
-class TaskListView extends StatelessWidget {
+class TaskListView extends StatefulWidget {
   final List<Task> tasks;
 
   const TaskListView({Key? key, required this.tasks}) : super(key: key);
 
   @override
+  _TaskListViewState createState() => _TaskListViewState();
+}
+
+class _TaskListViewState extends State<TaskListView> {
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        Task task = tasks[index];
-        return ListTile(
-          title: Text(task.name),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () {
-                  _showEditTaskDialog(context, task);
-                },
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Handle the refresh logic here
+        await Provider.of<TaskViewModel>(context, listen: false).initializeTasks();
+      },
+      child: ListView.builder(
+        itemCount: widget.tasks.length,
+        itemBuilder: (context, index) {
+          Task task = widget.tasks[index]; 
+          return Container(
+            margin: const EdgeInsets.all(8),
+                  // Adjust the margin as needed
+                  decoration: BoxDecoration(
+                    color: (() {
+                      switch (widget.tasks[index].status) {
+                        case 'ONPROCESS':
+                          return Color.fromARGB(255, 161, 0, 0);
+                        case 'PENDING':
+                          return Color.fromARGB(255, 255, 102, 0);
+                        case 'APPROVED':
+                          return Color.fromARGB(255, 30, 121, 33);
+                        default:
+                          return Color.fromARGB(255, 194, 0, 0);
+                      }
+                    })(),
+                    borderRadius: const BorderRadius.all(Radius.circular(
+                        8.0)), // Border radius for rounded corners
+                  ),
+            child: ListTile(
+              title: Text(task.name),
+              leading: widget.tasks[index].urgent == 1
+                        ? const Icon(Icons.push_pin, color: Colors.white)
+                        : null,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      _showEditTaskDialog(context, task);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      _showDeleteConfirmationDialog(task.id);
+                      //Provider.of<TaskViewModel>(context, listen: false).deleteTaskById(task.id);
+                    },
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  Provider.of<TaskViewModel>(context, listen: false)
-                      .deleteTaskById(task.id);
-                },
-              ),
-            ],
-          ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
+  Future<void> _showDeleteConfirmationDialog(String taskId) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Task'),
+          content: const Text('Are you sure you want to delete this task?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Provider.of<TaskViewModel>(context, listen: false).deleteTaskById(taskId);
+              },
+              child: const Text('Delete'),
+            ),
+          ],
         );
       },
     );
   }
+
 
   Future<void> _showEditTaskDialog(BuildContext context, Task task) async {
     return showDialog(
@@ -52,9 +115,10 @@ class TaskListView extends StatelessWidget {
 class EditTaskDialog extends StatefulWidget {
   final Task task;
 
-  EditTaskDialog({Key? key, required this.task}) : super(key: key);
+  const EditTaskDialog({Key? key, required this.task}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _EditTaskDialogState createState() => _EditTaskDialogState();
 }
 

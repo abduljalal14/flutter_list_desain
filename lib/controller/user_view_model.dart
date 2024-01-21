@@ -6,28 +6,25 @@ import '../network/api.dart';
 import '../view/login_page.dart';
 
 class UserViewModel with ChangeNotifier {
-  late User _user;
+  User _user = User(id: '', name: '', email: ''); // Initialize _user
+
   bool _isLoggedIn = false;
 
   User get user => _user;
   bool get isLoggedIn => _isLoggedIn;
 
-  UserViewModel() {
-    checkIfLoggedIn();
-  }
-
   void checkIfLoggedIn() async {
-  SharedPreferences localStorage = await SharedPreferences.getInstance();
-  var token = localStorage.getString('access_token');
-  _isLoggedIn = token != null;
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var token = localStorage.getString('access_token');
+    _isLoggedIn = token != null;
 
-  if (_isLoggedIn) {
-    await loadUserData();
+    if (_isLoggedIn) {
+      loadUserData();
+    }
+    notifyListeners();
   }
-  notifyListeners();
-}
 
-Future<void> loadUserData() async {
+  Future<void> loadUserData() async {
   try {
     var res = await Network().getData('/user');
     var body = json.decode(res.body);
@@ -38,10 +35,16 @@ Future<void> loadUserData() async {
         name: body['name'],
         email: body['email'],
       );
-      notifyListeners();
+      _isLoggedIn = true;
     }
   } catch (error) {
     print('Error loading user data: $error');
+    _isLoggedIn = false;
+    _user = User(id: '', name: '', email: '');
+    return;
+  } finally {
+    // Notify listeners after the asynchronous operation is completed
+    notifyListeners();
   }
 }
 
@@ -53,18 +56,22 @@ Future<void> loadUserData() async {
     if (body['message'] == "Login success") {
       SharedPreferences localStorage = await SharedPreferences.getInstance();
       localStorage.setString('access_token', body['access_token']);
+      loadUserData();
+      
     }
 
     return body;
   }
 
   void logout(BuildContext context) async {
-    var res = await Network().postData('','/logout');
+    var res = await Network().postData('', '/logout');
     var body = json.decode(res.body);
 
     if (body['message'] == "Successfully logged out") {
       SharedPreferences localStorage = await SharedPreferences.getInstance();
       localStorage.remove('access_token');
+      var token = localStorage.getString('access_token');
+      print("Isi token sekarang : $token");
 
       // ignore: use_build_context_synchronously
       Navigator.pushReplacement(

@@ -30,23 +30,26 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class CheckAuth extends StatelessWidget {
-  const CheckAuth({Key? key});
+class CheckAuth extends StatefulWidget {
+  const CheckAuth({Key? key}) : super(key: key);
+
+  @override
+  _CheckAuthState createState() => _CheckAuthState();
+}
+
+class _CheckAuthState extends State<CheckAuth> {
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<UserViewModel>(context, listen: false).checkIfLoggedIn();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Use Provider to access UserViewModel
     bool isAuth = Provider.of<UserViewModel>(context).isLoggedIn;
 
-    Widget child;
-    if (isAuth) {
-      child = HomePage();
-    } else {
-      child = Login();
-    }
+    Widget child = isAuth ? const HomePage() : const Login();
 
-    return Scaffold(
-      body: child,
-    );
+    return child;
   }
 }
