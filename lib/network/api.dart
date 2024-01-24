@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Network {
-  final String _url = 'https://list-design-backend.000webhostapp.com/';
+  final String _url = 'https://list-design-backend.000webhostapp.com/api';
    // ignore: prefer_typing_uninitialized_variables
    var token;
 
